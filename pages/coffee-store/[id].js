@@ -7,15 +7,19 @@ import { fetchCoffeeStores } from '../../lib/coffee-stores'
 import styles from '../../styles/coffee-store.module.css'
 import Image from 'next/image'
 import cls from 'classnames'
+import { useContext, useEffect, useState } from 'react'
+import { StoreContext } from '../../store/store-context'
+import { isEmpty } from '../../utils'
 
 export async function getStaticProps(staticProps){
     const params=staticProps.params
     const coffeeStores = await fetchCoffeeStores()
-    return {
-        props:{
-            coffeeStore: coffeeStores.find(coffeeStore=>{
+    const findCoffeeStoreById= coffeeStores.find(coffeeStore=>{
                 return coffeeStore.id.toString() === params.id
             })
+    return {
+        props:{
+            coffeeStore: findCoffeeStoreById? findCoffeeStoreById : {}
         }
     }
 }
@@ -39,14 +43,37 @@ export async function getStaticPaths(){
     }
 }
 
-const CoffeeStore=(props)=>{
+const CoffeeStore=(initialProps)=>{
     const router=useRouter()
 
     if(router.isFallback){
         return <div>Loading...</div>
     }
+
+    const id = router.query.id
+
+    const [coffeeStore, setCoffeeStore]=useState(initialProps.coffeeStore)
+
+    const {
+        state:{
+            coffeeStores
+        }
+    } = useContext(StoreContext)
+
+    useEffect(()=>{
+        if(isEmpty(initialProps.coffeeStore)){
+            if(coffeeStores.length >0){
+                const findCoffeeStoreById = coffeeStores.find(
+                    (coffeeStore)=>{
+                        return coffeeStore.id.toString() === id
+                    }
+                )
+                setCoffeeStore(findCoffeeStoreById)
+            }
+        }
+    },[id])
         
-    const {name,address,locality,imgUrl}=props.coffeeStore
+    const {name,address,locality,imgUrl}= coffeeStore
 
     const handleUpvoteButton=()=>{
         console.log('Upvote!');
