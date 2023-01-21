@@ -1,7 +1,9 @@
 import Document, { Head, Html, Main, NextScript } from 'next/document'
+
 class MyDocument extends Document{
     render(){
-        return <Html lang='en'>
+        return (
+        <Html lang='en'>
             <Head>
                 <link 
                 rel='preload' 
@@ -27,6 +29,7 @@ class MyDocument extends Document{
                 <NextScript/>
             </body>
         </Html>
+        )
     }
 }
 
