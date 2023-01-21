@@ -6,10 +6,12 @@ import { fetchCoffeeStores } from '../../lib/coffee-stores'
 
 import styles from '../../styles/coffee-store.module.css'
 import Image from 'next/image'
+import useSWR from 'swr'
 import cls from 'classnames'
+
 import { useContext, useEffect, useState } from 'react'
 import { StoreContext } from '../../store/store-context'
-import { isEmpty } from '../../utils'
+import { fetcher,isEmpty } from '../../utils'
 
 export async function getStaticProps(staticProps){
     const params=staticProps.params
@@ -60,23 +62,80 @@ const CoffeeStore=(initialProps)=>{
         }
     } = useContext(StoreContext)
 
+    const handleCreateCoffeeStore=async(coffeeStore)=>{
+        try {
+            const {
+                id,
+                name,
+                voting,
+                imgUrl,
+                locality,
+                address,
+            }=coffeeStore
+            const response = await fetch('/api/createCoffeeStore',{
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                id,
+                name,
+                voting:0,
+                imgUrl,
+                locality: locality || "Not provided",
+                address: address || "Not provided",
+                }),
+            })
+
+            const dbCoffeeStore=response.json()
+            console.log({dbCoffeeStore});
+        } catch (err) {
+            console.error('Error creating coffee store',err)
+        }
+    }
+
     useEffect(()=>{
         if(isEmpty(initialProps.coffeeStore)){
             if(coffeeStores.length >0){
-                const findCoffeeStoreById = coffeeStores.find(
+                const coffeeStoreFromContext = coffeeStores.find(
                     (coffeeStore)=>{
                         return coffeeStore.id.toString() === id
                     }
                 )
-                setCoffeeStore(findCoffeeStoreById)
+                
+                if(coffeeStoreFromContext){
+                setCoffeeStore(coffeeStoreFromContext)
+                handleCreateCoffeeStore(coffeeStoreFromContext) 
+                }
             }
         }
-    },[id])
+        else{
+            handleCreateCoffeeStore(initialProps.coffeeStore)
+        }
+    },[id,initialProps,initialProps.coffeeStore])
         
     const {name,address,locality,imgUrl}= coffeeStore
 
+    const [votingCount,setVotingCount]=useState(1)
+
+    const {data,error} = useSWR(`/api/getCoffeeStoreById?id=${id}`,fetcher)
+
+    useEffect(()=>{
+        if(data && data.length > 0){
+            console.log("data from SWR",data);
+            setCoffeeStore(data[0])
+            setVotingCount(data[0].voting)
+        }
+    },[data])
+
     const handleUpvoteButton=()=>{
         console.log('Upvote!');
+        let count = votingCount + 1
+        setVotingCount(count)
+    }
+
+    if(error){
+        return <div>Something went wrong retrieving coffee store page</div>
     }
 
     return (
@@ -113,7 +172,7 @@ const CoffeeStore=(initialProps)=>{
           </div>
           <div className={styles.iconWrapper}>
           <Image src='/static/icons/star.svg' width='24' height='24'/>
-          <p className={styles.text}>2</p>
+          <p className={styles.text}>{votingCount}</p>
          </div>
     <button className={styles.upvoteButton} onclick={handleUpvoteButton}>Up vote!</button>
     </div>

@@ -32,15 +32,20 @@ const {coffeeStores,latLong}=state
     async function setCoffeeStoresByLocation(){
     if(latLong){
       try{
-        const fetchedCoffeeStores=await fetchCoffeeStores(latLong,30)
-        console.log({fetchedCoffeeStores});
+        const response=await fetch(`/api/getCoffeeStoresByLocation?latLong=${latLong}&limit=30`)
+        
+        const coffeeStores=await response.json()
+
+       
+
         // setCoffeeStores(fetchedCoffeeStores)
         dispatch({
           type: ACTION_TYPES.SET_COFFEE_STORES,
           payload:{
-            coffeeStores: fetchedCoffeeStores,
+            coffeeStores,
           }
         })
+        setCoffeeStoresError('')
         //set coffee stores
       }
       catch(error){
