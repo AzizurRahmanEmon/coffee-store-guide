@@ -92,7 +92,7 @@ const {coffeeStores,latLong}=state
         {coffeeStoresError && <p>Something went wrong: {coffeeStoresError}</p>}
 
         <div className={styles.heroImage}>
-        <Image src="/static/hero-image.png" width={700} height={400}/>
+        <Image src="/static/hero-image.png" alt="hero image" width={700} height={400}/>
         </div>
 
          {coffeeStores.length > 0 && (
@@ -102,7 +102,6 @@ const {coffeeStores,latLong}=state
                 {coffeeStores.map((coffeeStore) => {
                   return (
                     <Card
-                      alt="hero image"
                       key={coffeeStore.id}
                       name={coffeeStore.name}
                       imgUrl={
