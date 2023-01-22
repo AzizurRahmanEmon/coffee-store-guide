@@ -102,6 +102,7 @@ const {coffeeStores,latLong}=state
                 {coffeeStores.map((coffeeStore) => {
                   return (
                     <Card
+                      alt="hero image"
                       key={coffeeStore.id}
                       name={coffeeStore.name}
                       imgUrl={
